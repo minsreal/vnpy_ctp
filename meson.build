@@ -16,18 +16,10 @@ fs = import('fs')
 py = import('python').find_installation(pure: false)
 py_dep = py.dependency()
 
-# 获取pybind11路径（用于编译器参数）
+# 获取pybind11路径
 python_cmd = host_machine.system() == 'windows' ? 'python' : 'python3'
-pybind11_result = run_command(python_cmd, '-c', 'import pybind11; print(pybind11.get_include())', check: true)
-pybind11_include_dir_str = pybind11_result.stdout().strip()
-message('使用pybind11路径: ' + pybind11_include_dir_str)
-
-# 根据平台设置 pybind11 的编译器参数
-if host_machine.system() == 'windows'
-  pybind11_include_flag = '/I' + pybind11_include_dir_str
-else
-  pybind11_include_flag = '-I' + pybind11_include_dir_str
-endif
+pybind11_include_dir = run_command(python_cmd, '-c', 'import pybind11; print(pybind11.get_include())', check: true).stdout().strip()
+message('使用pybind11路径: ' + pybind11_include_dir)
 
 # 获取编译器信息
 cpp = meson.get_compiler('cpp')
@@ -54,18 +46,17 @@ install_rpath_value = ''
 if host_machine.system() == 'windows'
   # Windows编译器设置
   add_project_arguments('/MT', language : 'cpp')
-  # 添加 pybind11 include 路径
-  add_project_arguments(pybind11_include_flag, language : 'cpp')
   
   # 设置库目录
   lib_dir = meson.current_source_dir() / 'vnpy_ctp/api/libs'
   api_dir = meson.current_source_dir() / 'vnpy_ctp/api'
   
-  # 设置include目录 - 修复：只使用相对路径
-  include_dirs = [
-    include_directories('vnpy_ctp/api/include'),
-    include_directories('vnpy_ctp/api/vnctp'),
-  ]
+  # 设置include目录
+  include_dirs = include_directories(
+    'vnpy_ctp/api/include',
+    'vnpy_ctp/api/vnctp',
+    pybind11_include_dir,
+  )
   
   # 定义CTP库
   thostmduserapi_lib = cpp.find_library('thostmduserapi_se', 
@@ -93,14 +84,12 @@ elif host_machine.system() == 'darwin'
   lib_dir = meson.current_source_dir() / 'vnpy_ctp/api/libs'
   api_dir = meson.current_source_dir() / 'vnpy_ctp/api'
 
-  # 设置include目录 - 修复：只使用相对路径
-  include_dirs = [
-    include_directories('vnpy_ctp/api/include/mac'),
-    include_directories('vnpy_ctp/api/vnctp'),
-  ]
-  
-  # 添加 pybind11 include 路径到编译器参数
-  extra_cpp_args += [pybind11_include_flag]
+  # 设置include目录
+  include_dirs = include_directories(
+    'vnpy_ctp/api/include/mac',
+    'vnpy_ctp/api/vnctp',
+    pybind11_include_dir,
+  )
   
   # 定义Mac Framework依赖
   thostmduserapi_lib = declare_dependency(
@@ -136,14 +125,12 @@ else  # Linux
   # 设置库目录
   lib_dir = meson.current_source_dir() / 'vnpy_ctp/api'
   
-  # 设置include目录 - 修复：只使用相对路径
-  include_dirs = [
-    include_directories('vnpy_ctp/api/include'),
-    include_directories('vnpy_ctp/api/vnctp'),
-  ]
-  
-  # 添加 pybind11 include 路径到编译器参数
-  extra_cpp_args += [pybind11_include_flag]
+  # 设置include目录
+  include_dirs = include_directories(
+    'vnpy_ctp/api/include',
+    'vnpy_ctp/api/vnctp',
+    pybind11_include_dir,
+  )
   
   # 定义CTP库
   thostmduserapi_lib = cpp.find_library('thostmduserapi_se', 

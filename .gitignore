@@ -37,3 +37,17 @@ x64/
 
 .DS_Store
 .idea/
+
+# dev build
+/vnpy_ctp/api/meson-info/
+/vnpy_ctp/api/meson-logs/
+/vnpy_ctp/api/meson-private/
+vnpy_ctp/api/meson-python-native-file.ini
+vnpy_ctp/api/compile_commands.json
+meson.build
+vnpy_ctp/api/.ninja_deps
+vnpy_ctp/api/.ninja_log
+vnpy_ctp/api/build.ninja
+2.13.6
+vnpy_ctp/api/vnctpmd*
+vnpy_ctp/api/vnctptd*
